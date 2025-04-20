@@ -1,52 +1,30 @@
 services:
-    postgres:
-        image: "postgres:latest"
-        environment:
-            - POSTGRES_PASSWORD=postgres_password
-    redis:
-        image: "redis:latest"
-    api:
-        build:
-            context: ./server
-            dockerfile: Dockerfile.dev
-        volumes:
-            - /app/node_modules
-            - ./server:/app
-        environment:
-            - NODE_ENV = development
-            - REDIS_HOST = redis
-            - REDIS_PORT = 6379
-            - PGUSER  = postgres
-            - PGHOST = postgres
-            - PGDATABASE = postgres
-            - PGPASSWORD = postgres_password
-            - PGPORT = 5432
-    client:
-        build:
-            context: ./client
-            dockerfile: Dockerfile.dev
-        volumes:
-            - /app/node_modules
-            - ./client:/app
-        environment:
-            - WDS_SOCKET_PORT=0
-    worker:
-        build:
-            dockerfile: Dockerfile.dev
-            context: ./worker
-        volumes:
-            - /app/node_modules
-            - ./worker:/app
-        environment:
-            - REDIS_HOST=redis
-            - REDIS_PORT=6379
-    nginx:
-        restart: always
-        build:
-            context: ./nginx
-            dockerfile: Dockerfile.dev
-        ports:
-            - "3050:80"
-        depends_on:
-            - api
-            - client
+  client:
+    image: "abenakn/multi-client"
+    mem_limit: 128m
+    hostname: client
+  server:
+    image: "abenakn/multi-server"
+    mem_limit: 128m
+    hostname: api
+    environment:
+      - REDIS_HOST=$REDIS_HOST
+      - REDIS_PORT=$REDIS_PORT
+      - PGUSER=$PGUSER
+      - PGHOST=$PGHOST
+      - PGDATABASE=$PGDATABASE
+      - PGPASSWORD=$PGPASSWORD
+      - PGPORT=$PGPORT
+  worker:
+    image: "abenakn/multi-worker"
+    mem_limit: 128m
+    hostname: worker
+    environment:
+      - REDIS_HOST=$REDIS_HOST
+      - REDIS_PORT=$REDIS_PORT
+  nginx:
+    image: "abenakn/multi-nginx"
+    mem_limit: 128m
+    hostname: nginx
+    ports:
+      - "80:80"

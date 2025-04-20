@@ -12,7 +12,7 @@ function App() {
                     <img src={logo} className="App-logo" alt="logo" />
                     <div>
                         <h1>Fib Calculator</h1>
-                        <Link to="/">Home</Link>
+                        <Link to="/">Home</Link><br />
                         <Link to="/otherpage">Other Page</Link>
                     </div>
                     <a
