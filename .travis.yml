@@ -1,0 +1,19 @@
+sude: required
+language: generic
+services:
+  - docker
+
+before_install:
+    - docker build -t abenakn/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+   - docker run -e CI=true abenakn/react-test npm test 
+
+after_success:
+    - docker build -t abenakn/multi-client ./client
+    - docker build -t abenakn/multi-nginx ./nginx
+    - docker build -t abenakn/multi-server ./server
+    - docker build -t abenakn/multi-worker ./worker
+
+
+   
