@@ -13,7 +13,7 @@ const fib = (index) => {
     return fib(index - 1) + fib(index - 2)
 }
 
-;(async () => {
+(async () => {
     await redisClient.connect()
     await sub.connect()
 

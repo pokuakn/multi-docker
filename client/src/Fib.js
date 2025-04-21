@@ -12,19 +12,19 @@ const Fib = () => {
     }, [])
 
     const fetchValues = async () => {
-        const values = await axios.get("/values/current")
+        const values = await axios.get("/api/values/current")
         setValues(values.data)
     }
 
     const fetchIndexes = async () => {
-        const seenIndexes = await axios.get("/values/all")
+        const seenIndexes = await axios.get("/api/values/all")
         setSeenIndexes(seenIndexes.data)
     }
 
     const handleSubmit = async (event) => {
         event.preventDefault()
 
-        await axios.post("/values", {
+        await axios.post("/api/values", {
             index: index,
         })
         setIndex("")
