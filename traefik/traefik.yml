@@ -1,18 +1,50 @@
 entryPoints:
   web:
     address: ":80"
-  websecure:
-    address: ":443"
 
 api:
   dashboard: true
-  insecure: false
+  insecure: true
 
 log:
-  level: INFO
+  level: DEBUG
 
 providers:
   docker:
     exposedByDefault: false
   file:
-    filename: /etc/traefik/dynamic.yml
+    filename: /etc/traefik/traefik.yaml
+    watch: true
+
+http:
+  routers:
+    api:
+      rule: "PathPrefix(`/api`) || PathPrefix(`/ws`)"
+      entryPoints:
+        - web
+      service: api
+      middlewares:
+        - strip-api
+
+    client:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - web
+      service: client
+
+  middlewares:
+    strip-api:
+      stripPrefix:
+        prefixes:
+          - "/api"
+
+  services:
+    api:
+      loadBalancer:
+        servers:
+          - url: "http://api:5000"
+
+    client:
+      loadBalancer:
+        servers:
+          - url: "http://client:3000"

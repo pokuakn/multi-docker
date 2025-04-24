@@ -1,0 +1,14 @@
+http:
+  routers:
+    react-app:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - web
+      service: static-react
+      priority: 1
+
+  services:
+    static-react:
+      loadBalancer:
+        servers:
+          - url: "http://localhost:80"

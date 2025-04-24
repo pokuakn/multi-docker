@@ -28,6 +28,10 @@ const Fib = () => {
             index: index,
         })
         setIndex("")
+
+        // Re-fetch values after submitting
+        fetchValues()
+        fetchIndexes()
     }
 
     const renderSeenIndexes = () => {
