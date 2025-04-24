@@ -4,7 +4,6 @@ const keys = require("./keys")
 const express = require("express")
 const bodyParser = require("body-parser")
 const cors = require("cors")
-
 const app = express()
 app.use(cors())
 app.use(bodyParser.json())
@@ -16,7 +15,7 @@ const pgClient = new Pool({
     host: keys.pgHost,
     database: keys.pgDatabase,
     password: keys.pgPassword,
-    port: keys.pgPort
+    port: keys.pgPort,
 })
 
 pgClient.on("connect", (client) => {
@@ -31,22 +30,34 @@ pgClient.on("error", (err) => {
 
 // Redis client setup
 const redis = require("redis")
+
+// Create Redis client
 const redisClient = redis.createClient({
     url: `redis://${keys.redisHost}:${keys.redisPort}`,
-    retry_strategy: () => 1000,
+    socket: {
+        reconnectStrategy: (retries) => {
+            console.log(`Retrying Redis connection attempt #${retries}`)
+            return 1000 // retry in 1 sec
+        },
+    },
 })
 
-const redisPublisher = redisClient.duplicate()(async () => {
-    await redisClient.connect()
-    await redisPublisher.connect()
-})()
+// Create publisher (duplicate of client)
+const redisPublisher = redisClient.duplicate()
 
- 
+async function connectRedis() {
+    try {
+        await redisClient.connect()
+        await redisPublisher.connect()
+        console.log("Connected to Redis")
+    } catch (err) {
+        console.error("Redis connection error:", err)
+    }
+}
+
+connectRedis()
+
 // Express route handlers
-app.get("/", (req, res) => {
-    res.send("Hello World!")
-})
-
 app.get("/values/all", async (req, res) => {
     const values = await pgClient.query("SELECT * FROM values")
     res.send(values.rows)
@@ -72,10 +83,17 @@ app.post("/values", async (req, res) => {
 })
 
 
-app.listen(5000, (err) => {
-    if (err) {
-        console.log("Error starting server", err)
-    } else {
-        console.log("Listening on port 5000")
-    }
+
+// WebSocket server setup
+const PORT = 5000
+const server = require("http").createServer(app)
+const WebSocket = require("ws")
+const wss = new WebSocket.Server({ server, path: "/ws" })
+
+wss.on("connection", (ws) => {
+    console.log("🔌 WebSocket connected")
+})
+
+server.listen(PORT, () => {
+    console.log(`Server (with WebSocket) listening on port ${PORT}`)
 })
